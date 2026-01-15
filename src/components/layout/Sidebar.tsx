@@ -8,14 +8,18 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Wallet
+  Wallet,
+  MessageSquare,
+  TrendingDown
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Package, label: 'Produk', path: '/products' },
+  { icon: TrendingDown, label: 'Pengeluaran', path: '/expenses' },
   { icon: Receipt, label: 'Transaksi', path: '/transactions' },
+  { icon: MessageSquare, label: 'Chat AI', path: '/chat' },
   { icon: BarChart3, label: 'Laporan', path: '/reports' },
   { icon: Settings, label: 'Pengaturan', path: '/settings' },
 ];
@@ -59,7 +63,7 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1">
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
