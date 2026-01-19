@@ -11,6 +11,7 @@ import AIChat from "./pages/AIChat";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Expenses from "./pages/Expenses";
+import Employees from "./pages/Employees";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/expenses" element={<Expenses />} />
+          <Route path="/employees" element={<Employees />} />
           <Route path="/chat" element={<AIChat />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />

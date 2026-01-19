@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Wallet,
   MessageSquare,
-  TrendingDown
+  TrendingDown,
+  Users
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
@@ -18,6 +19,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Package, label: 'Produk', path: '/products' },
   { icon: TrendingDown, label: 'Pengeluaran', path: '/expenses' },
+  { icon: Users, label: 'Karyawan', path: '/employees' },
   { icon: Receipt, label: 'Transaksi', path: '/transactions' },
   { icon: MessageSquare, label: 'Chat AI', path: '/chat' },
   { icon: BarChart3, label: 'Laporan', path: '/reports' },
