@@ -1,9 +1,15 @@
-import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp } from 'lucide-react';
-import { products } from '@/data/mockData';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, TrendingUp, Plus } from 'lucide-react';
+import { products as initialProducts, rawMaterials, Product } from '@/data/mockData';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { AddProductForm } from './AddProductForm';
 
 export const ProductList = () => {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [isAdding, setIsAdding] = useState(false);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -13,6 +19,10 @@ export const ProductList = () => {
     }).format(value);
   };
 
+  const handleAddProduct = (newProduct: Product) => {
+    setProducts(prev => [...prev, newProduct]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -20,7 +30,22 @@ export const ProductList = () => {
           <h1 className="text-2xl font-bold">Produk</h1>
           <p className="text-muted-foreground">Kelola produk dan lihat analisis HPP</p>
         </div>
+        <Button onClick={() => setIsAdding(true)} className="gap-2">
+          <Plus className="w-4 h-4" />
+          Tambah Produk
+        </Button>
       </div>
+
+      {/* Add Product Form */}
+      <AnimatePresence>
+        {isAdding && (
+          <AddProductForm
+            rawMaterials={rawMaterials}
+            onAddProduct={handleAddProduct}
+            onClose={() => setIsAdding(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <div className="grid gap-4">
         {products.map((product, index) => (
