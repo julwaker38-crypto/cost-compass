@@ -16,7 +16,7 @@ import {
 import { NavLink } from '@/components/NavLink';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: Package, label: 'Produk', path: '/products' },
   { icon: TrendingDown, label: 'Pengeluaran', path: '/expenses' },
   { icon: Users, label: 'Karyawan', path: '/employees' },
