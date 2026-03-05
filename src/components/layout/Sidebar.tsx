@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, 
@@ -11,7 +10,8 @@ import {
   Wallet,
   MessageSquare,
   TrendingDown,
-  Users
+  Users,
+  Leaf
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
@@ -35,18 +35,18 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: isCollapsed ? 72 : 240 }}
+      animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border z-50 flex flex-col"
+      className="fixed left-0 top-0 h-screen bg-card/30 backdrop-blur-xl border-r border-border/30 z-50 flex flex-col"
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
-        <motion.div 
+      <div className="h-16 flex items-center px-4 border-b border-border/30">
+        <motion.div
           className="flex items-center gap-3"
           animate={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }}
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-primary">
-            <Wallet className="w-5 h-5 text-primary-foreground" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+            <Leaf className="w-5 h-5 text-primary-foreground" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -57,7 +57,7 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                 transition={{ duration: 0.2 }}
               >
                 <h1 className="font-bold text-foreground tracking-tight">CostFlow</h1>
-                <p className="text-xs text-muted-foreground">HPP Manager</p>
+                <p className="text-[10px] text-muted-foreground">HPP Manager</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -66,13 +66,18 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        {!isCollapsed && (
+          <p className="px-3 mb-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
+            Menu
+          </p>
+        )}
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             end={item.path === '/'}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent transition-all duration-200 group"
-            activeClassName="bg-sidebar-accent text-foreground"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-all duration-200 group"
+            activeClassName="bg-primary/10 text-foreground border border-primary/15"
           >
             <item.icon className="w-5 h-5 flex-shrink-0 group-hover:text-primary transition-colors" />
             <AnimatePresence>
@@ -93,16 +98,16 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       </nav>
 
       {/* Toggle Button */}
-      <div className="p-3 border-t border-sidebar-border">
+      <div className="p-3 border-t border-border/30">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent transition-all duration-200"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-all duration-200"
         >
           {isCollapsed ? (
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           ) : (
             <>
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
               <span className="text-sm">Collapse</span>
             </>
           )}

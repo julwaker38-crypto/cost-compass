@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface KPICardProps {
   title: string;
@@ -30,36 +30,41 @@ export const KPICard = ({
     destructive: 'bg-destructive/10 text-destructive',
   };
 
-  const glowStyles = {
-    default: 'hover:glow-primary',
-    success: 'hover:glow-accent',
-    warning: '',
-    destructive: 'hover:glow-destructive',
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className={`stat-card ${glowStyles[variant]}`}
+      className="group relative p-5 sm:p-6 rounded-2xl bg-card/40 border border-border/30 hover:border-primary/20 hover:bg-card/60 transition-all duration-300 overflow-hidden"
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-12 h-12 rounded-xl ${variantStyles[variant]} flex items-center justify-center`}>
-          <Icon className="w-6 h-6" />
-        </div>
-        {trend && (
-          <div className={`flex items-center gap-1 text-sm ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
-            <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
-          </div>
-        )}
-      </div>
+      {/* Subtle glow on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-      <div>
-        <p className="text-sm text-muted-foreground mb-1">{title}</p>
-        <p className="text-2xl font-bold number-display">{value}</p>
+      <div className="relative">
+        <div className="flex items-start justify-between mb-4">
+          <div className={`w-11 h-11 rounded-xl ${variantStyles[variant]} flex items-center justify-center`}>
+            <Icon className="w-5 h-5" />
+          </div>
+          {trend && (
+            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+              trend.isPositive 
+                ? 'bg-success/10 text-success' 
+                : 'bg-destructive/10 text-destructive'
+            }`}>
+              {trend.isPositive ? (
+                <TrendingUp className="w-3 h-3" />
+              ) : (
+                <TrendingDown className="w-3 h-3" />
+              )}
+              <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-medium">{title}</p>
+        <p className="text-2xl sm:text-[1.75rem] font-extrabold number-display tracking-tight">{value}</p>
         {subtitle && (
-          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-1.5">{subtitle}</p>
         )}
       </div>
     </motion.div>

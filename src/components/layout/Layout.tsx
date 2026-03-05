@@ -16,7 +16,7 @@ export const Layout = ({ children }: LayoutProps) => {
       
       <motion.div
         initial={false}
-        animate={{ marginLeft: isCollapsed ? 72 : 240 }}
+        animate={{ marginLeft: isCollapsed ? 72 : 260 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="min-h-screen"
       >
