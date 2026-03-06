@@ -7,23 +7,30 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Wallet,
   MessageSquare,
   TrendingDown,
   Users,
   Leaf
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
+import { useAuth, UserRole } from '@/hooks/useAuth';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: Package, label: 'Produk', path: '/products' },
-  { icon: TrendingDown, label: 'Pengeluaran', path: '/expenses' },
-  { icon: Users, label: 'Karyawan', path: '/employees' },
-  { icon: Receipt, label: 'Transaksi', path: '/transactions' },
-  { icon: MessageSquare, label: 'Chat AI', path: '/chat' },
-  { icon: BarChart3, label: 'Laporan', path: '/reports' },
-  { icon: Settings, label: 'Pengaturan', path: '/settings' },
+interface NavItem {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  roles: UserRole[]; // which roles can see this item
+}
+
+const navItems: NavItem[] = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['manager', 'cashier'] },
+  { icon: Package, label: 'Produk', path: '/products', roles: ['manager'] },
+  { icon: TrendingDown, label: 'Pengeluaran', path: '/expenses', roles: ['manager', 'cashier'] },
+  { icon: Users, label: 'Karyawan', path: '/employees', roles: ['manager'] },
+  { icon: Receipt, label: 'Transaksi', path: '/transactions', roles: ['cashier'] },
+  { icon: MessageSquare, label: 'Chat AI', path: '/chat', roles: ['manager'] },
+  { icon: BarChart3, label: 'Laporan', path: '/reports', roles: ['manager'] },
+  { icon: Settings, label: 'Pengaturan', path: '/settings', roles: ['manager'] },
 ];
 
 interface SidebarProps {
@@ -32,6 +39,10 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
+  const { user } = useAuth();
+  const userRole = user?.role || 'cashier';
+  const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
+
   return (
     <motion.aside
       initial={false}
@@ -71,7 +82,7 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
             Menu
           </p>
         )}
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
