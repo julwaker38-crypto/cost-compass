@@ -1,0 +1,154 @@
+flowchart TD
+    %% ========== ENTRY ==========
+    START((User Buka App)) --> LANDING[Landing Page - Informasi Produk]
+    LANDING --> LOGIN_BTN[Klik Login / Daftar]
+    LOGIN_BTN --> AUTH_PAGE[Halaman Autentikasi]
+
+    %% ========== AUTHENTICATION ==========
+    AUTH_PAGE --> AUTH_CHOICE{Sudah Punya Akun?}
+    AUTH_CHOICE -->|Tidak| REGISTER[Form Registrasi]
+    REGISTER --> VALIDATE_REG{Validasi Input}
+    VALIDATE_REG -->|Gagal| REGISTER
+    VALIDATE_REG -->|Berhasil| HASH_PW[Hash Password - bcrypt]
+    HASH_PW --> SAVE_USER[Simpan ke DB users]
+    SAVE_USER --> GEN_TOKEN[Generate JWT Token]
+
+    AUTH_CHOICE -->|Ya| LOGIN[Form Login]
+    LOGIN --> VALIDATE_LOGIN{Validasi Kredensial}
+    VALIDATE_LOGIN -->|Gagal| LOGIN
+    VALIDATE_LOGIN -->|Berhasil| GEN_TOKEN
+
+    GEN_TOKEN --> STORE_SESSION[Simpan Token di Client]
+    STORE_SESSION --> ROLE_CHECK{Cek Role dari Token}
+
+    %% ========== ROLE ROUTING ==========
+    ROLE_CHECK -->|Manager| MGR_SIDEBAR[Sidebar Manager]
+    ROLE_CHECK -->|Cashier| CSR_SIDEBAR[Sidebar Cashier]
+
+    %% ========== MANAGER FLOW ==========
+    MGR_SIDEBAR --> MGR_DASH[Dashboard Manager]
+    MGR_SIDEBAR --> MGR_PROD[Manajemen Produk]
+    MGR_SIDEBAR --> MGR_EXP[Semua Pengeluaran]
+    MGR_SIDEBAR --> MGR_EMP[Manajemen Karyawan]
+    MGR_SIDEBAR --> MGR_CHAT[Chat AI]
+    MGR_SIDEBAR --> MGR_RPT[Laporan]
+    MGR_SIDEBAR --> MGR_SET[Pengaturan]
+
+    %% -- Dashboard Manager --
+    MGR_DASH --> KPI_FULL[KPI: Revenue, HPP, Profit, Margin]
+    KPI_FULL --> CHART_REV[Grafik Revenue]
+    KPI_FULL --> CHART_PROFIT[Grafik Profit Trend]
+    KPI_FULL --> CHART_COST[Komposisi HPP]
+    KPI_FULL --> TOP_PROD[Top Products]
+    KPI_FULL --> RECENT[Aktivitas Terkini]
+
+    %% -- Produk --
+    MGR_PROD --> PROD_LIST[Daftar Produk]
+    PROD_LIST --> PROD_ADD[Tambah Produk + Resep]
+    PROD_LIST --> PROD_EDIT[Edit Produk]
+    PROD_LIST --> PROD_DETAIL[Detail Produk - HPP Breakdown]
+    PROD_ADD --> RECIPE_INPUT[Input Bahan Baku per Unit]
+    RECIPE_INPUT --> CALC_HPP[Hitung HPP = BBB + BTKL + BOP]
+    CALC_HPP --> CALC_MARGIN[Hitung Margin Otomatis]
+    CALC_MARGIN --> SAVE_PROD[Simpan ke DB products]
+    SAVE_PROD --> PROD_LIST
+
+    PROD_LIST --> BTKL_MGR[Kelola Alokasi BTKL]
+    BTKL_MGR --> SELECT_LABOR[Pilih Karyawan Produksi]
+    SELECT_LABOR --> SET_PERCENT[Set Persentase per Produk]
+    SET_PERCENT --> RECALC_HPP[Recalculate HPP Semua Produk]
+    RECALC_HPP --> PROD_LIST
+
+    %% -- Karyawan --
+    MGR_EMP --> EMP_LIST[Daftar Karyawan]
+    EMP_LIST --> EMP_ADD[Tambah Karyawan]
+    EMP_LIST --> EMP_EDIT[Edit Karyawan]
+    EMP_ADD --> EMP_WAGE{Tipe Gaji}
+    EMP_WAGE -->|Harian| DAILY_WAGE[Input Gaji Harian]
+    EMP_WAGE -->|Bulanan| MONTHLY_WAGE[Input Gaji Bulanan]
+    DAILY_WAGE --> EMP_PRODUCTION{Karyawan Produksi?}
+    MONTHLY_WAGE --> EMP_PRODUCTION
+    EMP_PRODUCTION -->|Ya| MARK_BTKL[Tandai BTKL - Tenaga Kerja Langsung]
+    EMP_PRODUCTION -->|Tidak| MARK_NON[Non-Produksi]
+    MARK_BTKL --> SAVE_EMP[Simpan ke DB employees]
+    MARK_NON --> SAVE_EMP
+    SAVE_EMP --> EMP_LIST
+
+    %% -- Pengeluaran Manager --
+    MGR_EXP --> EXP_ALL[Lihat Semua Kategori]
+    EXP_ALL --> EXP_BAHAN[Pembelian Bahan Baku]
+    EXP_ALL --> EXP_BOP[Biaya Operasional]
+    EXP_ALL --> EXP_GAJI[Gaji Karyawan]
+    EXP_ALL --> EXP_LAIN[Pengeluaran Lainnya]
+    EXP_ALL --> EXP_CHART[Grafik Tren Pengeluaran]
+
+    %% -- Chat AI --
+    MGR_CHAT --> AI_INPUT[Ketik Perintah Natural Language]
+    AI_INPUT --> AI_PARSE{AI Parse Intent}
+    AI_PARSE --> AI_QUERY[Query Data dari DB]
+    AI_PARSE --> AI_ANALYZE[Analisis Bisnis + Insight]
+    AI_PARSE --> AI_TRANS[Input Transaksi via Chat]
+    AI_TRANS --> AI_CONFIRM{Konfirmasi?}
+    AI_CONFIRM -->|Ya| AI_SAVE[Simpan + Update Stok]
+    AI_CONFIRM -->|Tidak| AI_INPUT
+
+    %% -- Laporan --
+    MGR_RPT --> RPT_SELECT{Pilih Laporan}
+    RPT_SELECT --> RPT_PL[Laba Rugi]
+    RPT_SELECT --> RPT_SALES[Penjualan]
+    RPT_SELECT --> RPT_HPP[Analisa HPP]
+    RPT_SELECT --> RPT_EXP[Pengeluaran]
+    RPT_PL --> RPT_EXPORT{Export?}
+    RPT_SALES --> RPT_EXPORT
+    RPT_HPP --> RPT_EXPORT
+    RPT_EXP --> RPT_EXPORT
+    RPT_EXPORT -->|Ya| EXPORT_FORMAT[CSV / Excel / PDF]
+    RPT_EXPORT -->|Tidak| RPT_SELECT
+
+    %% -- Pengaturan --
+    MGR_SET --> SET_PROFILE[Profil Bisnis]
+    MGR_SET --> SET_CURRENCY[Mata Uang dan Format]
+    MGR_SET --> SET_USERS[Kelola User dan Role]
+    MGR_SET --> SET_BACKUP[Backup Data]
+
+    %% ========== CASHIER FLOW ==========
+    CSR_SIDEBAR --> CSR_DASH[Dashboard Cashier]
+    CSR_SIDEBAR --> CSR_POS[Transaksi POS]
+    CSR_SIDEBAR --> CSR_EXP[Pengeluaran Bahan Baku]
+
+    %% -- Dashboard Cashier --
+    CSR_DASH --> KPI_LITE[KPI: Transaksi Hari Ini, Total Penjualan]
+    KPI_LITE --> RECENT_SALES[Penjualan Terakhir]
+
+    %% -- POS --
+    CSR_POS --> POS_SELECT[Pilih Produk]
+    POS_SELECT --> POS_QTY[Input Jumlah]
+    POS_QTY --> POS_CART[Tambah ke Keranjang]
+    POS_CART --> POS_MORE{Tambah Lagi?}
+    POS_MORE -->|Ya| POS_SELECT
+    POS_MORE -->|Tidak| POS_REVIEW[Review Keranjang]
+    POS_REVIEW --> POS_PAY{Metode Bayar}
+    POS_PAY --> PAY_CASH[Cash - Hitung Kembalian]
+    POS_PAY --> PAY_TRANSFER[Transfer]
+    POS_PAY --> PAY_QRIS[QRIS]
+    PAY_CASH --> POS_PROCESS[Proses Transaksi]
+    PAY_TRANSFER --> POS_PROCESS
+    PAY_QRIS --> POS_PROCESS
+    POS_PROCESS --> DEDUCT_STOCK[Kurangi Stok - Trigger DB]
+    DEDUCT_STOCK --> GEN_STRUK[Generate Struk / Invoice]
+    GEN_STRUK --> SAVE_SALE[Simpan ke DB sales + sale_items]
+    SAVE_SALE --> POS_SUCCESS[Transaksi Selesai]
+
+    %% -- Pengeluaran Cashier --
+    CSR_EXP --> CSR_EXP_LIST[Daftar Pembelian Bahan Baku]
+    CSR_EXP_LIST --> CSR_EXP_ADD[Tambah Pembelian]
+    CSR_EXP_ADD --> CSR_EXP_INPUT[Pilih Bahan, Jumlah, Harga]
+    CSR_EXP_INPUT --> CSR_EXP_SAVE[Simpan Pembelian]
+    CSR_EXP_SAVE --> CSR_EXP_STOCK[Update Stok Bahan Baku]
+    CSR_EXP_STOCK --> CSR_EXP_LIST
+
+    %% ========== LOGOUT ==========
+    MGR_SIDEBAR --> LOGOUT[Logout]
+    CSR_SIDEBAR --> LOGOUT
+    LOGOUT --> CLEAR_TOKEN[Hapus Token / Session]
+    CLEAR_TOKEN --> LANDING
