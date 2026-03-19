@@ -1,12 +1,26 @@
 # CostFlow - Flowchart Dokumentasi
 
-Kumpulan flowchart yang mendokumentasikan seluruh alur logika aplikasi CostFlow, dipisahkan per role dan per fitur.
+Kumpulan flowchart yang mendokumentasikan seluruh alur logika aplikasi, dipisahkan per fase operasional dan per fitur.
+
+## Workflow Keseluruhan
+
+Aplikasi ini mendukung alur operasional vendor MBG (Makan Bergizi) dari pembelian bahan baku hingga pelaporan harian, dengan integrasi **Smart Scanner** untuk quality control dan **Smart Vision** untuk monitoring kepatuhan produksi.
+
+### 5 Fase Utama
+
+| Fase | Deskripsi |
+|------|-----------|
+| 1. Pembelian Bahan Baku | Vendor input data belanjaan dan menu produksi, sistem otomatis hitung gizi, modal, dan prediksi porsi |
+| 2. Pengecekan Bahan Baku | Bahan dari supplier di-scan Smart Scanner untuk QC otomatis, cross check manual untuk yang tidak layak |
+| 3. Produksi Menu | Karyawan scan APD via Smart Vision, bahan di-scan ulang, produksi diawasi kepatuhan APD & SOP |
+| 4. Pencatatan Total Porsi | Catat porsi aktual, bandingkan dengan prediksi, catat penerima manfaat |
+| 5. Laporan | Dashboard ringkasan harian + dokumen PDF otomatis mencakup semua data dari fase 1-4 |
 
 ## Daftar Flowchart
 
 | No | File | Deskripsi |
 |----|------|-----------|
-| 00 | `00_full_application_workflow.mmd` | **Workflow keseluruhan aplikasi** - semua fitur dalam satu diagram |
+| 00 | `00_full_application_workflow.mmd` | **Workflow keseluruhan aplikasi** - semua fase dalam satu diagram |
 | 01 | `01_overview_system.mmd` | Overview navigasi sistem per role |
 | 02 | `02_auth_flow.mmd` | Alur autentikasi (Login, Register, Demo) |
 | 03 | `03_manager_produk.mmd` | Manager: CRUD Produk, Resep, HPP, BTKL |
@@ -17,20 +31,15 @@ Kumpulan flowchart yang mendokumentasikan seluruh alur logika aplikasi CostFlow,
 | 08 | `08_manager_ai_chat.mmd` | Manager: Chat AI |
 | 09 | `09_dashboard.mmd` | Dashboard (berbeda per role) |
 
-## Role Access Matrix
+## Teknologi Terintegrasi
 
-| Fitur | Manager | Cashier |
-|-------|---------|---------|
-| Dashboard (Full KPI) | ✅ | ❌ |
-| Dashboard (Ringkasan) | ❌ | ✅ |
-| Produk & Resep | ✅ | ❌ |
-| Karyawan | ✅ | ❌ |
-| Transaksi POS | ❌ | ✅ |
-| Pengeluaran (Semua) | ✅ | ❌ |
-| Pengeluaran (Bahan Baku) | ❌ | ✅ |
-| Chat AI | ✅ | ❌ |
-| Laporan & Export | ✅ | ❌ |
-| Pengaturan | ✅ | ❌ |
+| Komponen | Fungsi |
+|----------|--------|
+| **Smart Scanner** | QC otomatis bahan baku (klasifikasi layak/tidak layak) |
+| **Smart Vision** | Deteksi kepatuhan APD & monitoring SOP produksi |
+| **Sistem Kalkulasi** | Otomatis hitung kandungan gizi, modal per porsi, prediksi total porsi |
+| **Dashboard** | Ringkasan harian seluruh operasional |
+| **PDF Generator** | Dokumen laporan harian otomatis |
 
 ## Cara Melihat
 
@@ -38,10 +47,3 @@ File `.mmd` menggunakan format [Mermaid](https://mermaid.js.org/). Bisa dilihat 
 - **GitHub** - otomatis render diagram Mermaid
 - **VS Code** - install extension "Mermaid Preview"
 - **Online** - paste ke [mermaid.live](https://mermaid.live)
-
-## Teknologi
-
-- **Frontend**: React + Vite + TypeScript + Tailwind CSS
-- **Backend**: Flask REST API + SQLAlchemy + JWT
-- **Database**: PostgreSQL
-- **HPP Formula**: `HPP = BBB (Bahan Baku) + BTKL (Tenaga Kerja Langsung) + BOP (Overhead)`
