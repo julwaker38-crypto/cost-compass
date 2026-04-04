@@ -5,18 +5,11 @@ import { Coffee, User, Lock, LogIn, ArrowLeft, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-
-export type UserRole = 'manager' | 'cashier';
-
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-}
+import { useAuth, UserRole, AuthUser } from '@/hooks/useAuth';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -48,7 +41,7 @@ const Login = () => {
           email: user.email,
           role: user.role,
         };
-        localStorage.setItem('costflow_auth', JSON.stringify(authUser));
+        login(authUser);
         toast.success(`Selamat datang, ${user.name}!`);
         navigate('/dashboard');
       } else {
@@ -94,7 +87,7 @@ const Login = () => {
         email: newUser.email,
         role: newUser.role,
       };
-      localStorage.setItem('costflow_auth', JSON.stringify(authUser));
+      login(authUser);
       
       toast.success('Registrasi berhasil!');
       navigate('/dashboard');
@@ -322,13 +315,13 @@ const Login = () => {
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    const demoManager = {
+                    const demoManager: AuthUser = {
                       id: 'demo-manager',
                       name: 'Demo Manager',
                       email: 'manager@demo.com',
-                      role: 'manager' as UserRole,
+                      role: 'manager',
                     };
-                    localStorage.setItem('costflow_auth', JSON.stringify(demoManager));
+                    login(demoManager);
                     toast.success('Login sebagai Manager');
                     navigate('/dashboard');
                   }}
@@ -341,13 +334,13 @@ const Login = () => {
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    const demoCashier = {
+                    const demoCashier: AuthUser = {
                       id: 'demo-cashier',
                       name: 'Demo Cashier',
                       email: 'cashier@demo.com',
-                      role: 'cashier' as UserRole,
+                      role: 'cashier',
                     };
-                    localStorage.setItem('costflow_auth', JSON.stringify(demoCashier));
+                    login(demoCashier);
                     toast.success('Login sebagai Cashier');
                     navigate('/dashboard');
                   }}
