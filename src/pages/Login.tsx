@@ -41,7 +41,7 @@ const Login = () => {
           email: user.email,
           role: user.role,
         };
-        localStorage.setItem('costflow_auth', JSON.stringify(authUser));
+        login(authUser);
         toast.success(`Selamat datang, ${user.name}!`);
         navigate('/dashboard');
       } else {
