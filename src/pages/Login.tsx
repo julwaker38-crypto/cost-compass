@@ -303,10 +303,10 @@ const Login = () => {
               </button>
             </div>
 
-            {/* Demo Accounts */}
+            {/* Template Accounts */}
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-xs text-muted-foreground text-center mb-3">
-                Demo Akun (klik untuk login otomatis)
+                Akun Template (klik untuk login otomatis)
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button
@@ -315,18 +315,17 @@ const Login = () => {
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    const demoManager: AuthUser = {
-                      id: 'demo-manager',
-                      name: 'Demo Manager',
-                      email: 'manager@demo.com',
+                    login({
+                      id: 'template-manager',
+                      name: 'Admin Manager',
+                      email: 'admin@costflow.com',
                       role: 'manager',
-                    };
-                    login(demoManager);
+                    });
                     toast.success('Login sebagai Manager');
                     navigate('/dashboard');
                   }}
                 >
-                  Login Manager
+                  🔑 Manager
                 </Button>
                 <Button
                   type="button"
@@ -334,19 +333,22 @@ const Login = () => {
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    const demoCashier: AuthUser = {
-                      id: 'demo-cashier',
-                      name: 'Demo Cashier',
-                      email: 'cashier@demo.com',
+                    login({
+                      id: 'template-cashier',
+                      name: 'Kasir CostFlow',
+                      email: 'kasir@costflow.com',
                       role: 'cashier',
-                    };
-                    login(demoCashier);
+                    });
                     toast.success('Login sebagai Cashier');
                     navigate('/dashboard');
                   }}
                 >
-                  Login Cashier
+                  🔑 Cashier
                 </Button>
+              </div>
+              <div className="mt-3 text-[10px] text-muted-foreground text-center space-y-0.5">
+                <p>Manager: admin@costflow.com / admin123</p>
+                <p>Cashier: kasir@costflow.com / kasir123</p>
               </div>
             </div>
           </div>
