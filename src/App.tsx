@@ -16,6 +16,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
+import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,28 @@ const App = () => (
             <Route path="/chat" element={<ProtectedRoute roles={['manager']}><AIChat /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute roles={['manager']}><Reports /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute roles={['manager']}><Settings /></ProtectedRoute>} />
+
+            {/* Master Data */}
+            <Route path="/master/kategori" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Master Kategori" description="Kelola kategori produk, bahan baku, dan pengeluaran." /></ProtectedRoute>} />
+            <Route path="/master/satuan" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Master Satuan" description="Kelola satuan ukuran (kg, liter, pcs, dll)." /></ProtectedRoute>} />
+            <Route path="/master/gudang" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Master Gudang" description="Kelola data gudang penyimpanan bahan baku." /></ProtectedRoute>} />
+
+            {/* Analisis */}
+            <Route path="/analisis/pareto" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Pareto" description="Identifikasi 20% produk yang menghasilkan 80% pendapatan." /></ProtectedRoute>} />
+            <Route path="/analisis/pembelian" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Pembelian" description="Analisis tren pembelian bahan baku dan efisiensi biaya." /></ProtectedRoute>} />
+            <Route path="/analisis/harga" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Harga" description="Bandingkan harga supplier dan analisis fluktuasi harga." /></ProtectedRoute>} />
+
+            {/* Manajemen Pengguna */}
+            <Route path="/users" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Pengguna" description="Kelola semua akun pengguna dalam sistem." /></ProtectedRoute>} />
+            <Route path="/users/roles" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Peran & Hak Akses" description="Atur peran dan izin akses untuk setiap pengguna." /></ProtectedRoute>} />
+            <Route path="/users/log" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Log Aktivitas" description="Pantau semua aktivitas pengguna dalam sistem." /></ProtectedRoute>} />
+
+            {/* Pengaturan */}
+            <Route path="/settings/config" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Konfigurasi" description="Konfigurasi sistem, notifikasi, dan preferensi." /></ProtectedRoute>} />
+
+            {/* Pusat Bantuan */}
+            <Route path="/help/request" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Minta Bantuan" description="Hubungi tim support untuk bantuan teknis." /></ProtectedRoute>} />
+            <Route path="/help/updates" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Riwayat Update" description="Lihat perubahan dan pembaruan sistem terbaru." /></ProtectedRoute>} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
