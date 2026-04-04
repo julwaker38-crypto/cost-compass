@@ -315,13 +315,13 @@ const Login = () => {
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    const demoManager = {
+                    const demoManager: AuthUser = {
                       id: 'demo-manager',
                       name: 'Demo Manager',
                       email: 'manager@demo.com',
-                      role: 'manager' as UserRole,
+                      role: 'manager',
                     };
-                    localStorage.setItem('costflow_auth', JSON.stringify(demoManager));
+                    login(demoManager);
                     toast.success('Login sebagai Manager');
                     navigate('/dashboard');
                   }}
