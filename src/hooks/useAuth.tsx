@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   isManager: boolean;
   isCashier: boolean;
+  login: (user: AuthUser) => void;
   logout: () => void;
   checkAccess: (allowedRoles: UserRole[]) => boolean;
 }
@@ -38,6 +39,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
+  const login = (authUser: AuthUser) => {
+    localStorage.setItem('costflow_auth', JSON.stringify(authUser));
+    setUser(authUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('costflow_auth');
     setUser(null);
@@ -54,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     isManager: user?.role === 'manager',
     isCashier: user?.role === 'cashier',
+    login,
     logout,
     checkAccess,
   };
@@ -67,43 +74,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-// HOC for protected routes
-export const withAuth = (
-  WrappedComponent: React.ComponentType,
-  allowedRoles?: UserRole[]
-) => {
-  return function ProtectedRoute(props: any) {
-    const { user, isLoading, checkAccess } = useAuth();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-      if (!isLoading) {
-        if (!user) {
-          navigate('/login');
-        } else if (allowedRoles && !checkAccess(allowedRoles)) {
-          navigate('/dashboard');
-        }
-      }
-    }, [user, isLoading, navigate]);
-
-    if (isLoading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-        </div>
-      );
-    }
-
-    if (!user) {
-      return null;
-    }
-
-    if (allowedRoles && !checkAccess(allowedRoles)) {
-      return null;
-    }
-
-    return <WrappedComponent {...props} />;
-  };
 };
