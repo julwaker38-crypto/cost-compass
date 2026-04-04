@@ -22,12 +22,38 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export const TEMPLATE_ACCOUNTS = [
+  {
+    id: 'template-manager',
+    name: 'Admin Manager',
+    email: 'admin@costflow.com',
+    password: 'admin123',
+    role: 'manager' as UserRole,
+  },
+  {
+    id: 'template-cashier',
+    name: 'Kasir CostFlow',
+    email: 'kasir@costflow.com',
+    password: 'kasir123',
+    role: 'cashier' as UserRole,
+  },
+];
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Seed template accounts if not exist
+    const existingUsers = JSON.parse(localStorage.getItem('costflow_users') || '[]');
+    const hasTemplates = existingUsers.some((u: any) => u.id === 'template-manager');
+    if (!hasTemplates) {
+      const merged = [...existingUsers, ...TEMPLATE_ACCOUNTS];
+      localStorage.setItem('costflow_users', JSON.stringify(merged));
+    }
+
+    // Load current session
     const storedUser = localStorage.getItem('costflow_auth');
     if (storedUser) {
       try {
