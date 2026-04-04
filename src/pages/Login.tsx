@@ -334,13 +334,13 @@ const Login = () => {
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    const demoCashier = {
+                    const demoCashier: AuthUser = {
                       id: 'demo-cashier',
                       name: 'Demo Cashier',
                       email: 'cashier@demo.com',
-                      role: 'cashier' as UserRole,
+                      role: 'cashier',
                     };
-                    localStorage.setItem('costflow_auth', JSON.stringify(demoCashier));
+                    login(demoCashier);
                     toast.success('Login sebagai Cashier');
                     navigate('/dashboard');
                   }}
