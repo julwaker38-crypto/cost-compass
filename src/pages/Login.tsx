@@ -87,7 +87,7 @@ const Login = () => {
         email: newUser.email,
         role: newUser.role,
       };
-      localStorage.setItem('costflow_auth', JSON.stringify(authUser));
+      login(authUser);
       
       toast.success('Registrasi berhasil!');
       navigate('/dashboard');
