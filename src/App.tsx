@@ -60,9 +60,9 @@ const App = () => (
             <Route path="/master/gudang" element={<ProtectedRoute roles={['manager']}><MasterGudang /></ProtectedRoute>} />
 
             {/* Analisis */}
-            <Route path="/analisis/pareto" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Pareto" description="Identifikasi 20% produk yang menghasilkan 80% pendapatan." /></ProtectedRoute>} />
-            <Route path="/analisis/pembelian" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Pembelian" description="Analisis tren pembelian bahan baku dan efisiensi biaya." /></ProtectedRoute>} />
-            <Route path="/analisis/harga" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Harga" description="Bandingkan harga supplier dan analisis fluktuasi harga." /></ProtectedRoute>} />
+            <Route path="/analisis/pareto" element={<ProtectedRoute roles={['manager']}><AnalisisPareto /></ProtectedRoute>} />
+            <Route path="/analisis/pembelian" element={<ProtectedRoute roles={['manager']}><AnalisisPembelian /></ProtectedRoute>} />
+            <Route path="/analisis/harga" element={<ProtectedRoute roles={['manager']}><AnalisisHarga /></ProtectedRoute>} />
 
             {/* Manajemen Pengguna */}
             <Route path="/users" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Pengguna" description="Kelola semua akun pengguna dalam sistem." /></ProtectedRoute>} />
