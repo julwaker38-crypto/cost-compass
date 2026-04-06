@@ -18,6 +18,12 @@ import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
+import MasterKategori from "./pages/MasterKategori";
+import MasterSatuan from "./pages/MasterSatuan";
+import MasterGudang from "./pages/MasterGudang";
+import AnalisisPareto from "./pages/AnalisisPareto";
+import AnalisisPembelian from "./pages/AnalisisPembelian";
+import AnalisisHarga from "./pages/AnalisisHarga";
 
 const queryClient = new QueryClient();
 
