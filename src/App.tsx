@@ -55,9 +55,9 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute roles={['manager']}><Settings /></ProtectedRoute>} />
 
             {/* Master Data */}
-            <Route path="/master/kategori" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Master Kategori" description="Kelola kategori produk, bahan baku, dan pengeluaran." /></ProtectedRoute>} />
-            <Route path="/master/satuan" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Master Satuan" description="Kelola satuan ukuran (kg, liter, pcs, dll)." /></ProtectedRoute>} />
-            <Route path="/master/gudang" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Master Gudang" description="Kelola data gudang penyimpanan bahan baku." /></ProtectedRoute>} />
+            <Route path="/master/kategori" element={<ProtectedRoute roles={['manager']}><MasterKategori /></ProtectedRoute>} />
+            <Route path="/master/satuan" element={<ProtectedRoute roles={['manager']}><MasterSatuan /></ProtectedRoute>} />
+            <Route path="/master/gudang" element={<ProtectedRoute roles={['manager']}><MasterGudang /></ProtectedRoute>} />
 
             {/* Analisis */}
             <Route path="/analisis/pareto" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Analisis Pareto" description="Identifikasi 20% produk yang menghasilkan 80% pendapatan." /></ProtectedRoute>} />
