@@ -1,340 +1,254 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Bot, Sparkles, ShoppingCart, TrendingDown, BarChart3, Package, DollarSign, Users, FileText, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { products, rawMaterials } from '@/data/mockData';
 import { toast } from 'sonner';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface Message {
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+
+interface TransactionLog {
   id: string;
-  type: 'user' | 'ai';
-  content: string;
+  type: 'sale' | 'expense';
+  description: string;
+  amount: number;
   timestamp: Date;
 }
 
 const AIChat = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'ai',
-      content: `Halo! Saya AI Assistant CostFlow. Saya siap membantu Anda mencatat transaksi bisnis hari ini.
+  const [saleOpen, setSaleOpen] = useState(false);
+  const [expenseOpen, setExpenseOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [saleQty, setSaleQty] = useState('1');
+  const [expenseMaterial, setExpenseMaterial] = useState('');
+  const [expenseQty, setExpenseQty] = useState('1');
+  const [expenseCustomName, setExpenseCustomName] = useState('');
+  const [expenseCustomAmount, setExpenseCustomAmount] = useState('');
+  const [expenseMode, setExpenseMode] = useState<'material' | 'custom'>('material');
+  const [logs, setLogs] = useState<TransactionLog[]>([]);
 
-**Contoh pesan untuk penjualan:**
-• "Saya telah menjual 5 Kopi Susu Gula Aren"
-• "Terjual 3 Matcha Latte hari ini"
-• "Penjualan 10 Es Teh Manis"
+  const handleSale = () => {
+    const product = products.find(p => p.id === selectedProduct);
+    if (!product) { toast.error('Pilih produk terlebih dahulu'); return; }
+    const qty = parseInt(saleQty) || 1;
+    const total = qty * product.sellingPrice;
+    const profit = qty * (product.sellingPrice - product.hpp);
 
-**Contoh pesan untuk pengeluaran HPP:**
-• "Saya membeli 3 kg biji kopi"
-• "Pembelian 5 liter susu UHT"
-• "Bayar gaji barista Rp150.000"
-
-**Contoh pesan untuk beban operasional:**
-• "Bayar listrik bulan ini Rp500.000"
-• "Pembayaran sewa tempat Rp5.000.000"`,
-      timestamp: new Date(),
-    },
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setLogs(prev => [{ id: Date.now().toString(), type: 'sale', description: `${qty}x ${product.name}`, amount: total, timestamp: new Date() }, ...prev]);
+    toast.success('Penjualan dicatat!', {
+      description: `${qty}x ${product.name} = ${formatCurrency(total)} | Profit: ${formatCurrency(profit)}`,
+    });
+    setSaleOpen(false);
+    setSelectedProduct('');
+    setSaleQty('1');
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const parseTransaction = (input: string): string => {
-    const lowerInput = input.toLowerCase();
-    
-    // Check for sales transaction
-    const salesKeywords = ['jual', 'terjual', 'penjualan', 'sold'];
-    const isSale = salesKeywords.some(keyword => lowerInput.includes(keyword));
-    
-    if (isSale) {
-      // Try to match product
-      for (const product of products) {
-        if (lowerInput.includes(product.name.toLowerCase())) {
-          // Extract quantity
-          const quantityMatch = input.match(/(\d+)/);
-          const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
-          const total = quantity * product.sellingPrice;
-          const profit = quantity * (product.sellingPrice - product.hpp);
-          
-          toast.success('Transaksi dicatat!', {
-            description: `${quantity}x ${product.name}`,
-          });
-          
-          return `✅ **Transaksi Penjualan Dicatat!**
-
-📦 **Produk:** ${product.name}
-📊 **Jumlah:** ${quantity} ${product.unit}
-💰 **Harga Satuan:** ${formatCurrency(product.sellingPrice)}
-💵 **Total Penjualan:** ${formatCurrency(total)}
-
-📈 **Analisis HPP:**
-• HPP per unit: ${formatCurrency(product.hpp)}
-• Total HPP: ${formatCurrency(quantity * product.hpp)}
-• **Profit Kotor:** ${formatCurrency(profit)}
-• **Margin:** ${product.margin}%
-
-Stok ${product.name} berkurang ${quantity} unit.`;
-        }
-      }
-      
-      return `⚠️ Maaf, saya tidak menemukan produk tersebut dalam database. 
-
-Produk yang tersedia:
-${products.map(p => `• ${p.name} - ${formatCurrency(p.sellingPrice)}`).join('\n')}
-
-Silakan coba lagi dengan nama produk yang benar.`;
+  const handleExpense = () => {
+    if (expenseMode === 'material') {
+      const material = rawMaterials.find(m => m.id === expenseMaterial);
+      if (!material) { toast.error('Pilih bahan terlebih dahulu'); return; }
+      const qty = parseInt(expenseQty) || 1;
+      const total = qty * material.pricePerUnit;
+      setLogs(prev => [{ id: Date.now().toString(), type: 'expense', description: `${qty} ${material.unit} ${material.name}`, amount: total, timestamp: new Date() }, ...prev]);
+      toast.success('Pengeluaran dicatat!', { description: `${material.name} = ${formatCurrency(total)}` });
+    } else {
+      const amount = parseInt(expenseCustomAmount.replace(/[.,]/g, '')) || 0;
+      if (!expenseCustomName || !amount) { toast.error('Isi nama dan nominal'); return; }
+      setLogs(prev => [{ id: Date.now().toString(), type: 'expense', description: expenseCustomName, amount, timestamp: new Date() }, ...prev]);
+      toast.success('Pengeluaran dicatat!', { description: `${expenseCustomName} = ${formatCurrency(amount)}` });
     }
-    
-    // Check for expense transaction
-    const expenseKeywords = ['beli', 'bayar', 'pembelian', 'pembayaran', 'biaya'];
-    const isExpense = expenseKeywords.some(keyword => lowerInput.includes(keyword));
-    
-    if (isExpense) {
-      // Try to match raw material
-      for (const material of rawMaterials) {
-        if (lowerInput.includes(material.name.toLowerCase())) {
-          const quantityMatch = input.match(/(\d+)/);
-          const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
-          const total = quantity * material.pricePerUnit;
-          
-          const categoryLabels: Record<string, string> = {
-            bahan_baku: 'Bahan Baku (HPP)',
-            tenaga_kerja: 'Tenaga Kerja Langsung (HPP)',
-            overhead: 'Overhead Produksi (HPP)',
-            operasional: 'Beban Operasional',
-            administrasi: 'Beban Administrasi',
-          };
-          
-          const isHpp = ['bahan_baku', 'tenaga_kerja', 'overhead'].includes(material.category);
-          
-          toast.success('Pengeluaran dicatat!', {
-            description: `${material.name} - ${formatCurrency(total)}`,
-          });
-          
-          return `✅ **Transaksi Pengeluaran Dicatat!**
-
-📦 **Item:** ${material.name}
-📂 **Kategori:** ${categoryLabels[material.category]}
-📊 **Jumlah:** ${quantity} ${material.unit}
-💰 **Harga Satuan:** ${formatCurrency(material.pricePerUnit)}
-💵 **Total Pengeluaran:** ${formatCurrency(total)}
-
-${isHpp ? '📊 **Termasuk dalam perhitungan HPP**' : '📊 **Tidak termasuk HPP (Beban Operasional)**'}
-
-Transaksi ini telah dicatat dan akan muncul di laporan laba rugi.`;
-        }
-      }
-      
-      // Check for amount mentioned directly (e.g., "bayar listrik Rp500.000")
-      const amountMatch = input.match(/[Rr][Pp]?\s*\.?\s*([\d.,]+)/);
-      if (amountMatch) {
-        const amount = parseInt(amountMatch[1].replace(/[.,]/g, ''));
-        
-        toast.success('Pengeluaran dicatat!', {
-          description: `Pengeluaran - ${formatCurrency(amount)}`,
-        });
-        
-        return `✅ **Transaksi Pengeluaran Dicatat!**
-
-💵 **Total Pengeluaran:** ${formatCurrency(amount)}
-📝 **Deskripsi:** ${input}
-
-Transaksi ini telah dicatat. Untuk kategorisasi yang lebih akurat, tambahkan item ke Data Pengeluaran terlebih dahulu.`;
-      }
-      
-      return `⚠️ Maaf, saya tidak menemukan item tersebut dalam database.
-
-Item pengeluaran yang tersedia:
-${rawMaterials.map(m => `• ${m.name} - ${formatCurrency(m.pricePerUnit)}/${m.unit}`).join('\n')}
-
-Atau sebutkan nominal langsung, contoh: "Bayar listrik Rp500.000"`;
-    }
-    
-    // Default response
-    return `Saya tidak yakin dengan pesan Anda. Silakan gunakan format berikut:
-
-**Untuk Penjualan:**
-"Jual [jumlah] [nama produk]"
-Contoh: "Jual 5 Kopi Susu Gula Aren"
-
-**Untuk Pengeluaran:**
-"Beli [jumlah] [nama bahan]" atau "Bayar [item] Rp[nominal]"
-Contoh: "Beli 3 kg biji kopi" atau "Bayar listrik Rp500.000"
-
-Ketik "help" untuk bantuan lebih lanjut.`;
+    setExpenseOpen(false);
+    setExpenseMaterial('');
+    setExpenseQty('1');
+    setExpenseCustomName('');
+    setExpenseCustomAmount('');
   };
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const totalSales = logs.filter(l => l.type === 'sale').reduce((s, l) => s + l.amount, 0);
+  const totalExpenses = logs.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsTyping(true);
-
-    // Simulate AI response delay
-    setTimeout(() => {
-      const aiResponse = parseTransaction(inputValue);
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: aiResponse,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1000);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  const quickActions = [
+    { icon: ShoppingCart, label: 'Catat Penjualan', description: 'Catat penjualan produk', color: 'from-green-500 to-emerald-600', onClick: () => setSaleOpen(true) },
+    { icon: TrendingDown, label: 'Catat Pengeluaran', description: 'Catat pembelian bahan/biaya', color: 'from-red-500 to-rose-600', onClick: () => setExpenseOpen(true) },
+    { icon: BarChart3, label: 'Ringkasan Hari Ini', description: 'Lihat total penjualan & pengeluaran', color: 'from-blue-500 to-indigo-600', onClick: () => {
+      toast.info(`📊 Ringkasan Hari Ini`, { description: `Penjualan: ${formatCurrency(totalSales)} | Pengeluaran: ${formatCurrency(totalExpenses)} | Saldo: ${formatCurrency(totalSales - totalExpenses)}` });
+    }},
+    { icon: Package, label: 'Cek Stok', description: 'Lihat stok produk saat ini', color: 'from-purple-500 to-violet-600', onClick: () => {
+      toast.info('📦 Stok Produk', { description: products.map(p => `${p.name}: ${p.stockCurrent} ${p.unit}`).join(', ') });
+    }},
+    { icon: DollarSign, label: 'Harga Produk', description: 'Lihat daftar harga jual', color: 'from-amber-500 to-orange-600', onClick: () => {
+      toast.info('💰 Daftar Harga', { description: products.map(p => `${p.name}: ${formatCurrency(p.sellingPrice)}`).join(', ') });
+    }},
+    { icon: Calculator, label: 'Hitung HPP', description: 'Lihat HPP per produk', color: 'from-teal-500 to-cyan-600', onClick: () => {
+      toast.info('📊 HPP Produk', { description: products.map(p => `${p.name}: ${formatCurrency(p.hpp)} (Margin ${p.margin}%)`).join(', ') });
+    }},
+  ];
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <h1 className="text-2xl font-bold mb-1">Chat AI - Transaksi Harian</h1>
-          <p className="text-muted-foreground">
-            Kirim pesan transaksi penjualan atau pengeluaran untuk dicatat otomatis
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card overflow-hidden flex flex-col h-[calc(100vh-14rem)]"
-        >
-          {/* Chat Header */}
-          <div className="p-4 border-b border-border flex items-center gap-3 bg-primary/5">
+      <div className="max-w-6xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+          <div className="flex items-center gap-3 mb-1">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Bot className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="font-semibold">AI Assistant - CostFlow</h2>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Powered by CostFlow AI
+              <h1 className="text-2xl font-bold">AI Assistant - CostFlow</h1>
+              <p className="text-muted-foreground text-sm flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> Catat transaksi cepat dengan tombol aksi
               </p>
             </div>
           </div>
+        </motion.div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <AnimatePresence>
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl p-4 ${
-                      message.type === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-sm'
-                        : 'glass-surface rounded-bl-sm'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      {message.type === 'ai' ? (
-                        <Bot className="w-4 h-4" />
-                      ) : (
-                        <User className="w-4 h-4" />
-                      )}
-                      <span className="text-xs opacity-70">
-                        {message.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="text-sm whitespace-pre-wrap">
-                      {message.content.split('\n').map((line, i) => {
-                        // Simple markdown-like parsing
-                        if (line.startsWith('**') && line.endsWith('**')) {
-                          return <p key={i} className="font-bold">{line.slice(2, -2)}</p>;
-                        }
-                        if (line.startsWith('• ')) {
-                          return <p key={i} className="ml-2">{line}</p>;
-                        }
-                        return <p key={i}>{line}</p>;
-                      })}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="p-4 border-green-500/20 bg-green-500/5">
+            <p className="text-sm text-muted-foreground">Total Penjualan Hari Ini</p>
+            <p className="text-2xl font-bold text-green-600">{formatCurrency(totalSales)}</p>
+            <p className="text-xs text-muted-foreground">{logs.filter(l => l.type === 'sale').length} transaksi</p>
+          </Card>
+          <Card className="p-4 border-red-500/20 bg-red-500/5">
+            <p className="text-sm text-muted-foreground">Total Pengeluaran Hari Ini</p>
+            <p className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
+            <p className="text-xs text-muted-foreground">{logs.filter(l => l.type === 'expense').length} transaksi</p>
+          </Card>
+          <Card className="p-4 border-blue-500/20 bg-blue-500/5">
+            <p className="text-sm text-muted-foreground">Saldo Bersih</p>
+            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalSales - totalExpenses)}</p>
+          </Card>
+        </div>
 
-            {isTyping && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-start"
+        {/* Quick Action Buttons */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <h2 className="text-lg font-semibold mb-3">Aksi Cepat</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            {quickActions.map((action, i) => (
+              <motion.button
+                key={action.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * i }}
+                onClick={action.onClick}
+                className="p-4 rounded-xl border border-border/50 bg-card hover:bg-secondary/30 transition-all text-left group"
               >
-                <div className="glass-surface rounded-2xl rounded-bl-sm p-4">
-                  <div className="flex items-center gap-2">
-                    <Bot className="w-4 h-4" />
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  </div>
+                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${action.color} flex items-center justify-center mb-3`}>
+                  <action.icon className="w-5 h-5 text-white" />
                 </div>
-              </motion.div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="p-4 border-t border-border bg-card/50">
-            <div className="flex gap-3">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ketik transaksi... (contoh: Jual 5 Kopi Susu Gula Aren)"
-                className="flex-1"
-              />
-              <Button onClick={handleSend} className="gap-2">
-                <Send className="w-4 h-4" />
-                Kirim
-              </Button>
-            </div>
+                <p className="font-medium text-sm">{action.label}</p>
+                <p className="text-xs text-muted-foreground">{action.description}</p>
+              </motion.button>
+            ))}
           </div>
         </motion.div>
+
+        {/* Transaction Log */}
+        {logs.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <h2 className="text-lg font-semibold mb-3">Riwayat Transaksi Hari Ini</h2>
+            <div className="space-y-2">
+              {logs.map(log => (
+                <div key={log.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${log.type === 'sale' ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                      {log.type === 'sale' ? <ShoppingCart className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{log.description}</p>
+                      <p className="text-xs text-muted-foreground">{log.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                  </div>
+                  <p className={`font-semibold text-sm ${log.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>
+                    {log.type === 'sale' ? '+' : '-'}{formatCurrency(log.amount)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
+
+      {/* Sale Dialog */}
+      <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Catat Penjualan</DialogTitle>
+            <DialogDescription>Pilih produk dan jumlah yang terjual</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Produk</Label>
+              <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                <SelectTrigger><SelectValue placeholder="Pilih produk" /></SelectTrigger>
+                <SelectContent>
+                  {products.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name} - {formatCurrency(p.sellingPrice)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Jumlah</Label>
+              <Input type="number" min="1" value={saleQty} onChange={e => setSaleQty(e.target.value)} />
+            </div>
+            <Button onClick={handleSale} className="w-full">Catat Penjualan</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expense Dialog */}
+      <Dialog open={expenseOpen} onOpenChange={setExpenseOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Catat Pengeluaran</DialogTitle>
+            <DialogDescription>Pilih bahan baku atau masukkan pengeluaran manual</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button variant={expenseMode === 'material' ? 'default' : 'outline'} size="sm" onClick={() => setExpenseMode('material')}>Bahan Baku</Button>
+              <Button variant={expenseMode === 'custom' ? 'default' : 'outline'} size="sm" onClick={() => setExpenseMode('custom')}>Manual</Button>
+            </div>
+            {expenseMode === 'material' ? (
+              <>
+                <div>
+                  <Label>Bahan</Label>
+                  <Select value={expenseMaterial} onValueChange={setExpenseMaterial}>
+                    <SelectTrigger><SelectValue placeholder="Pilih bahan" /></SelectTrigger>
+                    <SelectContent>
+                      {rawMaterials.map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.name} - {formatCurrency(m.pricePerUnit)}/{m.unit}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Jumlah</Label>
+                  <Input type="number" min="1" value={expenseQty} onChange={e => setExpenseQty(e.target.value)} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label>Nama Pengeluaran</Label>
+                  <Input value={expenseCustomName} onChange={e => setExpenseCustomName(e.target.value)} placeholder="Contoh: Bayar listrik" />
+                </div>
+                <div>
+                  <Label>Nominal (Rp)</Label>
+                  <Input value={expenseCustomAmount} onChange={e => setExpenseCustomAmount(e.target.value)} placeholder="500000" />
+                </div>
+              </>
+            )}
+            <Button onClick={handleExpense} className="w-full">Catat Pengeluaran</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
