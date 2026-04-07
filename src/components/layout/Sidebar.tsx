@@ -57,12 +57,19 @@ const navGroups: NavGroup[] = [
     path: '/dashboard', 
     roles: ['manager', 'cashier'] 
   },
-  { 
-    id: 'transactions',
-    icon: Receipt, 
-    label: 'Transaksi', 
-    path: '/transactions', 
-    roles: ['cashier'] 
+  {
+    id: 'penjualan',
+    icon: ShoppingCart,
+    label: 'Penjualan',
+    roles: ['cashier'],
+    items: [
+      { icon: Receipt, label: 'Kasir', path: '/transactions' },
+      { icon: ShoppingCart, label: 'Pesanan Penjualan', path: '/penjualan/pesanan' },
+      { icon: BarChart3, label: 'Daftar Penjualan', path: '/penjualan/daftar' },
+      { icon: TrendingDown, label: 'Retur Penjualan', path: '/penjualan/retur' },
+      { icon: Activity, label: 'Penjualan Tertolak', path: '/penjualan/tertolak' },
+      { icon: DollarSign, label: 'QRIS', path: '/penjualan/qris' },
+    ]
   },
   {
     id: 'master-data',
@@ -74,6 +81,19 @@ const navGroups: NavGroup[] = [
       { icon: Tag, label: 'Master Kategori', path: '/master/kategori' },
       { icon: Ruler, label: 'Master Satuan', path: '/master/satuan' },
       { icon: Warehouse, label: 'Master Gudang', path: '/master/gudang' },
+    ]
+  },
+  {
+    id: 'persediaan',
+    icon: Package,
+    label: 'Persediaan',
+    roles: ['manager'],
+    items: [
+      { icon: Package, label: 'Daftar Produk', path: '/persediaan/produk' },
+      { icon: Activity, label: 'Defecta', path: '/persediaan/defecta' },
+      { icon: History, label: 'Stok Kadaluarsa', path: '/persediaan/kadaluarsa' },
+      { icon: Warehouse, label: 'Stok Opname', path: '/persediaan/opname' },
+      { icon: Wrench, label: 'Penyesuaian Stok', path: '/persediaan/penyesuaian' },
     ]
   },
   { 
@@ -102,6 +122,30 @@ const navGroups: NavGroup[] = [
     ]
   },
   {
+    id: 'laporan',
+    icon: BarChart3,
+    label: 'Laporan',
+    roles: ['manager'],
+    items: [
+      { icon: Receipt, label: 'Laporan Penjualan', path: '/laporan/penjualan' },
+      { icon: ShoppingCart, label: 'Laporan Pembelian', path: '/laporan/pembelian' },
+      { icon: Package, label: 'Laporan Persediaan', path: '/laporan/persediaan' },
+      { icon: DollarSign, label: 'Laporan Keuangan', path: '/laporan/keuangan' },
+    ]
+  },
+  {
+    id: 'multi-outlet',
+    icon: Building2,
+    label: 'Multi Outlet',
+    roles: ['manager'],
+    items: [
+      { icon: TrendingUp, label: 'Permintaan Mutasi', path: '/outlet/mutasi-request' },
+      { icon: Warehouse, label: 'Mutasi Antar Outlet', path: '/outlet/mutasi' },
+      { icon: Package, label: 'Daftar Produk Mitra', path: '/outlet/produk-mitra' },
+      { icon: Building2, label: 'Daftar Outlet Mitra', path: '/outlet/outlet-mitra' },
+    ]
+  },
+  {
     id: 'user-management',
     icon: UserCog,
     label: 'Manajemen Pengguna',
@@ -117,13 +161,6 @@ const navGroups: NavGroup[] = [
     icon: MessageSquare, 
     label: 'Chat AI', 
     path: '/chat', 
-    roles: ['manager'] 
-  },
-  { 
-    id: 'reports',
-    icon: BarChart3, 
-    label: 'Laporan', 
-    path: '/reports', 
     roles: ['manager'] 
   },
   {
