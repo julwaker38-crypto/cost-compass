@@ -43,8 +43,13 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute roles={['manager', 'cashier']}><Index /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute roles={['manager', 'cashier']}><Expenses /></ProtectedRoute>} />
 
-            {/* Cashier only */}
+            {/* Cashier - Penjualan */}
             <Route path="/transactions" element={<ProtectedRoute roles={['cashier']}><Transactions /></ProtectedRoute>} />
+            <Route path="/penjualan/pesanan" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Pesanan Penjualan" description="Kelola pesanan penjualan yang masuk." /></ProtectedRoute>} />
+            <Route path="/penjualan/daftar" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Daftar Penjualan" description="Lihat riwayat semua transaksi penjualan." /></ProtectedRoute>} />
+            <Route path="/penjualan/retur" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Retur Penjualan" description="Kelola pengembalian barang dari pelanggan." /></ProtectedRoute>} />
+            <Route path="/penjualan/tertolak" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Penjualan Tertolak" description="Lihat daftar penjualan yang ditolak atau gagal." /></ProtectedRoute>} />
+            <Route path="/penjualan/qris" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="QRIS" description="Kelola pembayaran melalui QRIS." /></ProtectedRoute>} />
 
             {/* Manager only */}
             <Route path="/products" element={<ProtectedRoute roles={['manager']}><Products /></ProtectedRoute>} />
@@ -59,10 +64,29 @@ const App = () => (
             <Route path="/master/satuan" element={<ProtectedRoute roles={['manager']}><MasterSatuan /></ProtectedRoute>} />
             <Route path="/master/gudang" element={<ProtectedRoute roles={['manager']}><MasterGudang /></ProtectedRoute>} />
 
+            {/* Persediaan */}
+            <Route path="/persediaan/produk" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Produk" description="Kelola daftar produk persediaan." /></ProtectedRoute>} />
+            <Route path="/persediaan/defecta" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Defecta" description="Kelola daftar barang defecta/rusak." /></ProtectedRoute>} />
+            <Route path="/persediaan/kadaluarsa" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Stok Kadaluarsa" description="Pantau stok yang mendekati atau sudah kadaluarsa." /></ProtectedRoute>} />
+            <Route path="/persediaan/opname" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Stok Opname" description="Lakukan pengecekan stok fisik vs sistem." /></ProtectedRoute>} />
+            <Route path="/persediaan/penyesuaian" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Penyesuaian Stok" description="Sesuaikan jumlah stok secara manual." /></ProtectedRoute>} />
+
             {/* Analisis */}
             <Route path="/analisis/pareto" element={<ProtectedRoute roles={['manager']}><AnalisisPareto /></ProtectedRoute>} />
             <Route path="/analisis/pembelian" element={<ProtectedRoute roles={['manager']}><AnalisisPembelian /></ProtectedRoute>} />
             <Route path="/analisis/harga" element={<ProtectedRoute roles={['manager']}><AnalisisHarga /></ProtectedRoute>} />
+
+            {/* Laporan */}
+            <Route path="/laporan/penjualan" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Laporan Penjualan" description="Laporan detail transaksi penjualan." /></ProtectedRoute>} />
+            <Route path="/laporan/pembelian" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Laporan Pembelian" description="Laporan detail pembelian bahan baku." /></ProtectedRoute>} />
+            <Route path="/laporan/persediaan" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Laporan Persediaan" description="Laporan stok dan pergerakan barang." /></ProtectedRoute>} />
+            <Route path="/laporan/keuangan" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Laporan Keuangan" description="Laporan keuangan lengkap bisnis." /></ProtectedRoute>} />
+
+            {/* Multi Outlet */}
+            <Route path="/outlet/mutasi-request" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Permintaan Mutasi" description="Ajukan permintaan mutasi stok antar outlet." /></ProtectedRoute>} />
+            <Route path="/outlet/mutasi" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Mutasi Antar Outlet" description="Kelola perpindahan stok antar outlet." /></ProtectedRoute>} />
+            <Route path="/outlet/produk-mitra" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Produk Mitra" description="Lihat produk dari outlet mitra." /></ProtectedRoute>} />
+            <Route path="/outlet/outlet-mitra" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Outlet Mitra" description="Kelola daftar outlet mitra." /></ProtectedRoute>} />
 
             {/* Manajemen Pengguna */}
             <Route path="/users" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Pengguna" description="Kelola semua akun pengguna dalam sistem." /></ProtectedRoute>} />
