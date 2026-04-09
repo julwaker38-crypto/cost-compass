@@ -1,254 +1,303 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
-import { Bot, Sparkles, ShoppingCart, TrendingDown, BarChart3, Package, DollarSign, Users, FileText, Calculator } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { products, rawMaterials } from '@/data/mockData';
-import { toast } from 'sonner';
+import { Bot, Sparkles, Send, ShoppingCart, TrendingDown, BarChart3, Package, DollarSign, Calculator, Users, FileText, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { products, rawMaterials, dailyData, kpiData } from '@/data/mockData';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-interface TransactionLog {
+interface ChatMessage {
   id: string;
-  type: 'sale' | 'expense';
-  description: string;
-  amount: number;
+  role: 'user' | 'assistant';
+  content: string;
   timestamp: Date;
 }
 
+interface TemplateItem {
+  icon: React.ElementType;
+  label: string;
+  query: string;
+  color: string;
+}
+
+const templates: TemplateItem[] = [
+  { icon: BarChart3, label: 'Ringkasan Penjualan Hari Ini', query: 'Tampilkan ringkasan penjualan hari ini', color: 'from-blue-500 to-indigo-600' },
+  { icon: Package, label: 'Cek Stok Produk', query: 'Tampilkan stok semua produk saat ini', color: 'from-purple-500 to-violet-600' },
+  { icon: DollarSign, label: 'Daftar Harga Produk', query: 'Tampilkan daftar harga jual semua produk', color: 'from-amber-500 to-orange-600' },
+  { icon: Calculator, label: 'Analisis HPP & Margin', query: 'Analisis HPP dan margin semua produk', color: 'from-teal-500 to-cyan-600' },
+  { icon: TrendingDown, label: 'Produk Stok Rendah', query: 'Tampilkan produk dengan stok rendah', color: 'from-red-500 to-rose-600' },
+  { icon: ShoppingCart, label: 'Produk Terlaris', query: 'Tampilkan produk terlaris berdasarkan penjualan', color: 'from-green-500 to-emerald-600' },
+  { icon: Users, label: 'Harga Bahan Baku', query: 'Tampilkan daftar harga bahan baku', color: 'from-pink-500 to-fuchsia-600' },
+  { icon: FileText, label: 'Laporan Profit Harian', query: 'Tampilkan laporan profit harian minggu ini', color: 'from-sky-500 to-blue-600' },
+];
+
+function generateResponse(query: string): string {
+  const q = query.toLowerCase();
+
+  if (q.includes('ringkasan') || q.includes('penjualan hari')) {
+    const totalRevenue = dailyData.reduce((s, d) => s + d.revenue, 0);
+    const totalProfit = dailyData.reduce((s, d) => s + d.profit, 0);
+    const totalHpp = dailyData.reduce((s, d) => s + d.hpp, 0);
+    return `📊 **Ringkasan Penjualan**\n\n| Metrik | Nilai |\n|---|---|\n| Total Revenue | ${formatCurrency(totalRevenue)} |\n| Total HPP | ${formatCurrency(totalHpp)} |\n| Total Profit | ${formatCurrency(totalProfit)} |\n| Rata-rata Harian | ${formatCurrency(Math.round(totalRevenue / dailyData.length))} |\n| Margin Rata-rata | ${((totalProfit / totalRevenue) * 100).toFixed(1)}% |\n\n✅ Performa penjualan dalam kondisi baik.`;
+  }
+
+  if (q.includes('stok') && (q.includes('produk') || q.includes('semua'))) {
+    const rows = products.map(p => `| ${p.emoji} ${p.name} | ${p.stockCurrent} ${p.unit} | ${p.stockCurrent < 20 ? '⚠️ Rendah' : '✅ Aman'} |`).join('\n');
+    return `📦 **Stok Produk Saat Ini**\n\n| Produk | Stok | Status |\n|---|---|---|\n${rows}\n\n💡 Segera restok produk dengan status ⚠️ Rendah.`;
+  }
+
+  if (q.includes('harga') && q.includes('produk')) {
+    const rows = products.map(p => `| ${p.emoji} ${p.name} | ${formatCurrency(p.sellingPrice)} | ${formatCurrency(p.hpp)} | ${p.margin}% |`).join('\n');
+    return `💰 **Daftar Harga Produk**\n\n| Produk | Harga Jual | HPP | Margin |\n|---|---|---|---|\n${rows}`;
+  }
+
+  if (q.includes('hpp') || q.includes('margin')) {
+    const sorted = [...products].sort((a, b) => b.margin - a.margin);
+    const rows = sorted.map(p => `| ${p.emoji} ${p.name} | ${formatCurrency(p.hpp)} | ${formatCurrency(p.sellingPrice)} | **${p.margin}%** | ${formatCurrency(p.sellingPrice - p.hpp)} |`).join('\n');
+    const avgMargin = (products.reduce((s, p) => s + p.margin, 0) / products.length).toFixed(1);
+    return `📊 **Analisis HPP & Margin**\n\n| Produk | HPP | Harga Jual | Margin | Profit/Unit |\n|---|---|---|---|---|\n${rows}\n\n📈 Margin rata-rata: **${avgMargin}%**\n💡 Produk dengan margin tertinggi: **${sorted[0].name}** (${sorted[0].margin}%)`;
+  }
+
+  if (q.includes('stok rendah') || q.includes('low stock')) {
+    const low = products.filter(p => p.stockCurrent < 20);
+    if (low.length === 0) return '✅ Semua produk memiliki stok yang cukup. Tidak ada produk dengan stok rendah.';
+    const rows = low.map(p => `| ${p.emoji} ${p.name} | ${p.stockCurrent} ${p.unit} | ⚠️ Perlu restok |`).join('\n');
+    return `⚠️ **Produk Stok Rendah**\n\n| Produk | Stok | Status |\n|---|---|---|\n${rows}\n\n🔔 Segera lakukan pembelian bahan baku untuk produk di atas.`;
+  }
+
+  if (q.includes('terlaris') || q.includes('best seller')) {
+    const sorted = [...products].sort((a, b) => b.salesCount - a.salesCount);
+    const rows = sorted.map((p, i) => `| ${i + 1} | ${p.emoji} ${p.name} | ${p.salesCount} | ${formatCurrency(p.salesCount * p.sellingPrice)} |`).join('\n');
+    return `🏆 **Produk Terlaris**\n\n| # | Produk | Terjual | Revenue |\n|---|---|---|---|\n${rows}\n\n🌟 Produk terlaris: **${sorted[0].name}** dengan ${sorted[0].salesCount} penjualan.`;
+  }
+
+  if (q.includes('bahan baku') || q.includes('material')) {
+    const rows = rawMaterials.map(m => `| ${m.name} | ${formatCurrency(m.pricePerUnit)}/${m.unit} | ${m.stockCurrent} ${m.unit} | ${m.category} |`).join('\n');
+    return `🧪 **Daftar Harga Bahan Baku**\n\n| Bahan | Harga | Stok | Kategori |\n|---|---|---|---|\n${rows}`;
+  }
+
+  if (q.includes('profit') || q.includes('harian')) {
+    const rows = dailyData.map(d => `| ${d.date} | ${formatCurrency(d.revenue)} | ${formatCurrency(d.hpp)} | ${formatCurrency(d.profit)} | ${((d.profit / d.revenue) * 100).toFixed(1)}% |`).join('\n');
+    return `📈 **Laporan Profit Harian**\n\n| Tanggal | Revenue | HPP | Profit | Margin |\n|---|---|---|---|---|\n${rows}\n\n💰 Total profit minggu ini: **${formatCurrency(dailyData.reduce((s, d) => s + d.profit, 0))}**`;
+  }
+
+  return `🤖 Maaf, saya belum memahami pertanyaan tersebut. Silakan gunakan salah satu template yang tersedia untuk mendapatkan informasi yang Anda butuhkan.`;
+}
+
 const AIChat = () => {
-  const [saleOpen, setSaleOpen] = useState(false);
-  const [expenseOpen, setExpenseOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [saleQty, setSaleQty] = useState('1');
-  const [expenseMaterial, setExpenseMaterial] = useState('');
-  const [expenseQty, setExpenseQty] = useState('1');
-  const [expenseCustomName, setExpenseCustomName] = useState('');
-  const [expenseCustomAmount, setExpenseCustomAmount] = useState('');
-  const [expenseMode, setExpenseMode] = useState<'material' | 'custom'>('material');
-  const [logs, setLogs] = useState<TransactionLog[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: '0', role: 'assistant', content: '👋 Halo! Saya asisten AI CostFlow. Pilih salah satu template di bawah untuk mendapatkan informasi bisnis Anda secara instan.', timestamp: new Date() }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleSale = () => {
-    const product = products.find(p => p.id === selectedProduct);
-    if (!product) { toast.error('Pilih produk terlebih dahulu'); return; }
-    const qty = parseInt(saleQty) || 1;
-    const total = qty * product.sellingPrice;
-    const profit = qty * (product.sellingPrice - product.hpp);
-
-    setLogs(prev => [{ id: Date.now().toString(), type: 'sale', description: `${qty}x ${product.name}`, amount: total, timestamp: new Date() }, ...prev]);
-    toast.success('Penjualan dicatat!', {
-      description: `${qty}x ${product.name} = ${formatCurrency(total)} | Profit: ${formatCurrency(profit)}`,
-    });
-    setSaleOpen(false);
-    setSelectedProduct('');
-    setSaleQty('1');
-  };
-
-  const handleExpense = () => {
-    if (expenseMode === 'material') {
-      const material = rawMaterials.find(m => m.id === expenseMaterial);
-      if (!material) { toast.error('Pilih bahan terlebih dahulu'); return; }
-      const qty = parseInt(expenseQty) || 1;
-      const total = qty * material.pricePerUnit;
-      setLogs(prev => [{ id: Date.now().toString(), type: 'expense', description: `${qty} ${material.unit} ${material.name}`, amount: total, timestamp: new Date() }, ...prev]);
-      toast.success('Pengeluaran dicatat!', { description: `${material.name} = ${formatCurrency(total)}` });
-    } else {
-      const amount = parseInt(expenseCustomAmount.replace(/[.,]/g, '')) || 0;
-      if (!expenseCustomName || !amount) { toast.error('Isi nama dan nominal'); return; }
-      setLogs(prev => [{ id: Date.now().toString(), type: 'expense', description: expenseCustomName, amount, timestamp: new Date() }, ...prev]);
-      toast.success('Pengeluaran dicatat!', { description: `${expenseCustomName} = ${formatCurrency(amount)}` });
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    setExpenseOpen(false);
-    setExpenseMaterial('');
-    setExpenseQty('1');
-    setExpenseCustomName('');
-    setExpenseCustomAmount('');
+  }, [messages, isTyping]);
+
+  const handleTemplate = (template: TemplateItem) => {
+    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: template.query, timestamp: new Date() };
+    setMessages(prev => [...prev, userMsg]);
+    setIsTyping(true);
+
+    setTimeout(() => {
+      const response = generateResponse(template.query);
+      const assistantMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'assistant', content: response, timestamp: new Date() };
+      setMessages(prev => [...prev, assistantMsg]);
+      setIsTyping(false);
+    }, 800);
   };
 
-  const totalSales = logs.filter(l => l.type === 'sale').reduce((s, l) => s + l.amount, 0);
-  const totalExpenses = logs.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
+  const renderMarkdown = (text: string) => {
+    // Simple markdown renderer for tables and bold
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    let tableRows: string[][] = [];
+    let inTable = false;
 
-  const quickActions = [
-    { icon: ShoppingCart, label: 'Catat Penjualan', description: 'Catat penjualan produk', color: 'from-green-500 to-emerald-600', onClick: () => setSaleOpen(true) },
-    { icon: TrendingDown, label: 'Catat Pengeluaran', description: 'Catat pembelian bahan/biaya', color: 'from-red-500 to-rose-600', onClick: () => setExpenseOpen(true) },
-    { icon: BarChart3, label: 'Ringkasan Hari Ini', description: 'Lihat total penjualan & pengeluaran', color: 'from-blue-500 to-indigo-600', onClick: () => {
-      toast.info(`📊 Ringkasan Hari Ini`, { description: `Penjualan: ${formatCurrency(totalSales)} | Pengeluaran: ${formatCurrency(totalExpenses)} | Saldo: ${formatCurrency(totalSales - totalExpenses)}` });
-    }},
-    { icon: Package, label: 'Cek Stok', description: 'Lihat stok produk saat ini', color: 'from-purple-500 to-violet-600', onClick: () => {
-      toast.info('📦 Stok Produk', { description: products.map(p => `${p.name}: ${p.stockCurrent} ${p.unit}`).join(', ') });
-    }},
-    { icon: DollarSign, label: 'Harga Produk', description: 'Lihat daftar harga jual', color: 'from-amber-500 to-orange-600', onClick: () => {
-      toast.info('💰 Daftar Harga', { description: products.map(p => `${p.name}: ${formatCurrency(p.sellingPrice)}`).join(', ') });
-    }},
-    { icon: Calculator, label: 'Hitung HPP', description: 'Lihat HPP per produk', color: 'from-teal-500 to-cyan-600', onClick: () => {
-      toast.info('📊 HPP Produk', { description: products.map(p => `${p.name}: ${formatCurrency(p.hpp)} (Margin ${p.margin}%)`).join(', ') });
-    }},
-  ];
+    const processInline = (line: string) => {
+      return line.split(/(\*\*.*?\*\*)/).map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={i}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+    };
+
+    lines.forEach((line, i) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        const cells = trimmed.split('|').filter(c => c.trim() !== '');
+        if (cells.every(c => /^[-\s:]+$/.test(c.trim()))) return; // separator
+        tableRows.push(cells.map(c => c.trim()));
+        inTable = true;
+        return;
+      }
+      if (inTable) {
+        elements.push(
+          <div key={`table-${i}`} className="overflow-x-auto my-2">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-border">{tableRows[0]?.map((c, j) => <th key={j} className="p-2 text-left font-semibold text-muted-foreground">{processInline(c)}</th>)}</tr>
+              </thead>
+              <tbody>
+                {tableRows.slice(1).map((row, ri) => (
+                  <tr key={ri} className="border-b border-border/50 hover:bg-secondary/20">
+                    {row.map((c, j) => <td key={j} className="p-2">{processInline(c)}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+        tableRows = [];
+        inTable = false;
+      }
+      if (trimmed === '') {
+        elements.push(<br key={i} />);
+      } else {
+        elements.push(<p key={i} className="mb-1">{processInline(trimmed)}</p>);
+      }
+    });
+
+    if (inTable && tableRows.length > 0) {
+      elements.push(
+        <div key="table-end" className="overflow-x-auto my-2">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-border">{tableRows[0]?.map((c, j) => <th key={j} className="p-2 text-left font-semibold text-muted-foreground">{processInline(c)}</th>)}</tr>
+            </thead>
+            <tbody>
+              {tableRows.slice(1).map((row, ri) => (
+                <tr key={ri} className="border-b border-border/50 hover:bg-secondary/20">
+                  {row.map((c, j) => <td key={j} className="p-2">{processInline(c)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return elements;
+  };
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <div className="flex items-center gap-3 mb-1">
+      <div className="max-w-6xl mx-auto flex flex-col h-[calc(100vh-6rem)]">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Bot className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">AI Assistant - CostFlow</h1>
+              <h1 className="text-2xl font-bold">AI Assistant</h1>
               <p className="text-muted-foreground text-sm flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Catat transaksi cepat dengan tombol aksi
+                <Sparkles className="w-3 h-3" /> Pilih template untuk mendapatkan insight bisnis
               </p>
             </div>
           </div>
         </motion.div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="p-4 border-green-500/20 bg-green-500/5">
-            <p className="text-sm text-muted-foreground">Total Penjualan Hari Ini</p>
-            <p className="text-2xl font-bold text-green-600">{formatCurrency(totalSales)}</p>
-            <p className="text-xs text-muted-foreground">{logs.filter(l => l.type === 'sale').length} transaksi</p>
-          </Card>
-          <Card className="p-4 border-red-500/20 bg-red-500/5">
-            <p className="text-sm text-muted-foreground">Total Pengeluaran Hari Ini</p>
-            <p className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
-            <p className="text-xs text-muted-foreground">{logs.filter(l => l.type === 'expense').length} transaksi</p>
-          </Card>
-          <Card className="p-4 border-blue-500/20 bg-blue-500/5">
-            <p className="text-sm text-muted-foreground">Saldo Bersih</p>
-            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalSales - totalExpenses)}</p>
-          </Card>
-        </div>
-
-        {/* Quick Action Buttons */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <h2 className="text-lg font-semibold mb-3">Aksi Cepat</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-            {quickActions.map((action, i) => (
-              <motion.button
-                key={action.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * i }}
-                onClick={action.onClick}
-                className="p-4 rounded-xl border border-border/50 bg-card hover:bg-secondary/30 transition-all text-left group"
-              >
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${action.color} flex items-center justify-center mb-3`}>
-                  <action.icon className="w-5 h-5 text-white" />
-                </div>
-                <p className="font-medium text-sm">{action.label}</p>
-                <p className="text-xs text-muted-foreground">{action.description}</p>
-              </motion.button>
-            ))}
+        <div className="flex-1 flex gap-4 min-h-0">
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <Card className="flex-1 flex flex-col overflow-hidden">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+                <AnimatePresence>
+                  {messages.map(msg => (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-[85%] rounded-2xl p-4 ${
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary/50 text-foreground'
+                      }`}>
+                        {msg.role === 'assistant' ? (
+                          <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
+                        ) : (
+                          <p className="text-sm">{msg.content}</p>
+                        )}
+                        <p className={`text-[10px] mt-2 ${msg.role === 'user' ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
+                          {msg.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {isTyping && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                    <div className="bg-secondary/50 rounded-2xl p-4 flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground">Menganalisis data...</span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </Card>
           </div>
-        </motion.div>
 
-        {/* Transaction Log */}
-        {logs.length > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="text-lg font-semibold mb-3">Riwayat Transaksi Hari Ini</h2>
+          {/* Template Sidebar */}
+          <div className="w-72 flex-shrink-0 hidden lg:block">
+            <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Template Pertanyaan</h3>
             <div className="space-y-2">
-              {logs.map(log => (
-                <div key={log.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${log.type === 'sale' ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
-                      {log.type === 'sale' ? <ShoppingCart className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{log.description}</p>
-                      <p className="text-xs text-muted-foreground">{log.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
-                    </div>
+              {templates.map((t, i) => (
+                <motion.button
+                  key={t.label}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * i }}
+                  onClick={() => handleTemplate(t)}
+                  disabled={isTyping}
+                  className="w-full p-3 rounded-xl border border-border/50 bg-card hover:bg-secondary/30 transition-all text-left group flex items-center gap-3 disabled:opacity-50"
+                >
+                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center flex-shrink-0`}>
+                    <t.icon className="w-4 h-4 text-white" />
                   </div>
-                  <p className={`font-semibold text-sm ${log.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>
-                    {log.type === 'sale' ? '+' : '-'}{formatCurrency(log.amount)}
-                  </p>
-                </div>
+                  <span className="text-xs font-medium flex-1">{t.label}</span>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.button>
               ))}
             </div>
-          </motion.div>
-        )}
+          </div>
+        </div>
+
+        {/* Mobile Templates */}
+        <div className="lg:hidden mt-3">
+          <ScrollArea className="w-full">
+            <div className="flex gap-2 pb-2">
+              {templates.map(t => (
+                <Button
+                  key={t.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTemplate(t)}
+                  disabled={isTyping}
+                  className="whitespace-nowrap flex-shrink-0 text-xs"
+                >
+                  <t.icon className="w-3 h-3 mr-1" />
+                  {t.label}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
-
-      {/* Sale Dialog */}
-      <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Catat Penjualan</DialogTitle>
-            <DialogDescription>Pilih produk dan jumlah yang terjual</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Produk</Label>
-              <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                <SelectTrigger><SelectValue placeholder="Pilih produk" /></SelectTrigger>
-                <SelectContent>
-                  {products.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name} - {formatCurrency(p.sellingPrice)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Jumlah</Label>
-              <Input type="number" min="1" value={saleQty} onChange={e => setSaleQty(e.target.value)} />
-            </div>
-            <Button onClick={handleSale} className="w-full">Catat Penjualan</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Expense Dialog */}
-      <Dialog open={expenseOpen} onOpenChange={setExpenseOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Catat Pengeluaran</DialogTitle>
-            <DialogDescription>Pilih bahan baku atau masukkan pengeluaran manual</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button variant={expenseMode === 'material' ? 'default' : 'outline'} size="sm" onClick={() => setExpenseMode('material')}>Bahan Baku</Button>
-              <Button variant={expenseMode === 'custom' ? 'default' : 'outline'} size="sm" onClick={() => setExpenseMode('custom')}>Manual</Button>
-            </div>
-            {expenseMode === 'material' ? (
-              <>
-                <div>
-                  <Label>Bahan</Label>
-                  <Select value={expenseMaterial} onValueChange={setExpenseMaterial}>
-                    <SelectTrigger><SelectValue placeholder="Pilih bahan" /></SelectTrigger>
-                    <SelectContent>
-                      {rawMaterials.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.name} - {formatCurrency(m.pricePerUnit)}/{m.unit}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Jumlah</Label>
-                  <Input type="number" min="1" value={expenseQty} onChange={e => setExpenseQty(e.target.value)} />
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <Label>Nama Pengeluaran</Label>
-                  <Input value={expenseCustomName} onChange={e => setExpenseCustomName(e.target.value)} placeholder="Contoh: Bayar listrik" />
-                </div>
-                <div>
-                  <Label>Nominal (Rp)</Label>
-                  <Input value={expenseCustomAmount} onChange={e => setExpenseCustomAmount(e.target.value)} placeholder="500000" />
-                </div>
-              </>
-            )}
-            <Button onClick={handleExpense} className="w-full">Catat Pengeluaran</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };
