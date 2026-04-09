@@ -76,11 +76,11 @@ const App = () => (
             <Route path="/master/gudang" element={<ProtectedRoute roles={['manager']}><MasterGudang /></ProtectedRoute>} />
 
             {/* Persediaan */}
-            <Route path="/persediaan/produk" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Produk" description="Kelola daftar produk persediaan." /></ProtectedRoute>} />
-            <Route path="/persediaan/defecta" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Defecta" description="Kelola daftar barang defecta/rusak." /></ProtectedRoute>} />
-            <Route path="/persediaan/kadaluarsa" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Stok Kadaluarsa" description="Pantau stok yang mendekati atau sudah kadaluarsa." /></ProtectedRoute>} />
-            <Route path="/persediaan/opname" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Stok Opname" description="Lakukan pengecekan stok fisik vs sistem." /></ProtectedRoute>} />
-            <Route path="/persediaan/penyesuaian" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Penyesuaian Stok" description="Sesuaikan jumlah stok secara manual." /></ProtectedRoute>} />
+            <Route path="/persediaan/produk" element={<ProtectedRoute roles={['manager']}><DaftarProduk /></ProtectedRoute>} />
+            <Route path="/persediaan/defecta" element={<ProtectedRoute roles={['manager']}><Defecta /></ProtectedRoute>} />
+            <Route path="/persediaan/kadaluarsa" element={<ProtectedRoute roles={['manager']}><StokKadaluarsa /></ProtectedRoute>} />
+            <Route path="/persediaan/opname" element={<ProtectedRoute roles={['manager']}><StokOpname /></ProtectedRoute>} />
+            <Route path="/persediaan/penyesuaian" element={<ProtectedRoute roles={['manager']}><PenyesuaianStok /></ProtectedRoute>} />
 
             {/* Analisis */}
             <Route path="/analisis/pareto" element={<ProtectedRoute roles={['manager']}><AnalisisPareto /></ProtectedRoute>} />
