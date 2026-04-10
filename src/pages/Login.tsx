@@ -43,7 +43,7 @@ const Login = () => {
         };
         login(authUser);
         toast.success(`Selamat datang, ${user.name}!`);
-        navigate('/dashboard');
+        navigate(user.role === 'cashier' ? '/transactions' : '/laporan/penjualan');
       } else {
         toast.error('Email atau password salah');
       }
@@ -90,7 +90,7 @@ const Login = () => {
       login(authUser);
       
       toast.success('Registrasi berhasil!');
-      navigate('/dashboard');
+      navigate(newUser.role === 'cashier' ? '/transactions' : '/laporan/penjualan');
     }
 
     setIsLoading(false);
@@ -322,7 +322,7 @@ const Login = () => {
                       role: 'manager',
                     });
                     toast.success('Login sebagai Manager');
-                    navigate('/dashboard');
+                    navigate('/laporan/penjualan');
                   }}
                 >
                   🔑 Manager
@@ -340,7 +340,7 @@ const Login = () => {
                       role: 'cashier',
                     });
                     toast.success('Login sebagai Cashier');
-                    navigate('/dashboard');
+                    navigate('/transactions');
                   }}
                 >
                   🔑 Cashier
