@@ -16,7 +16,9 @@ export const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
       if (!user) {
         navigate('/login');
       } else if (!checkAccess(roles)) {
-        navigate('/dashboard');
+        // Redirect based on role
+        const defaultRoute = user.role === 'cashier' ? '/transactions' : '/laporan/penjualan';
+        navigate(defaultRoute);
       }
     }
   }, [user, isLoading, roles, navigate, checkAccess]);
