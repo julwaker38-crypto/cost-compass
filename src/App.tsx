@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -16,7 +16,6 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
-import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 import DaftarProduk from "./pages/persediaan/DaftarProduk";
 import Defecta from "./pages/persediaan/Defecta";
@@ -37,6 +36,17 @@ import LaporanPenjualan from "./pages/laporan/LaporanPenjualan";
 import LaporanPembelian from "./pages/laporan/LaporanPembelian";
 import LaporanPersediaan from "./pages/laporan/LaporanPersediaan";
 import LaporanKeuangan from "./pages/laporan/LaporanKeuangan";
+import PesananPenjualan from "./pages/penjualan/PesananPenjualan";
+import DaftarPenjualan from "./pages/penjualan/DaftarPenjualan";
+import ReturPenjualan from "./pages/penjualan/ReturPenjualan";
+import PenjualanTertolak from "./pages/penjualan/PenjualanTertolak";
+import QRIS from "./pages/penjualan/QRIS";
+import DaftarPengguna from "./pages/users/DaftarPengguna";
+import PeranHakAkses from "./pages/users/PeranHakAkses";
+import LogAktivitas from "./pages/users/LogAktivitas";
+import Konfigurasi from "./pages/settings/Konfigurasi";
+import MintaBantuan from "./pages/help/MintaBantuan";
+import RiwayatUpdate from "./pages/help/RiwayatUpdate";
 
 const queryClient = new QueryClient();
 
@@ -51,16 +61,21 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             
-            <Route path="/dashboard" element={<ProtectedRoute roles={['manager', 'cashier']}><Index /></ProtectedRoute>} />
+            {/* Dashboard - now under Laporan for manager */}
+            <Route path="/dashboard" element={<ProtectedRoute roles={['manager']}><Index /></ProtectedRoute>} />
+
+            {/* Pengeluaran */}
             <Route path="/expenses" element={<ProtectedRoute roles={['manager', 'cashier']}><Expenses /></ProtectedRoute>} />
 
-            {/* Cashier - Penjualan */}
+            {/* Cashier - Kasir (primary) */}
             <Route path="/transactions" element={<ProtectedRoute roles={['cashier']}><Transactions /></ProtectedRoute>} />
-            <Route path="/penjualan/pesanan" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Pesanan Penjualan" description="Kelola pesanan penjualan yang masuk." /></ProtectedRoute>} />
-            <Route path="/penjualan/daftar" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Daftar Penjualan" description="Lihat riwayat semua transaksi penjualan." /></ProtectedRoute>} />
-            <Route path="/penjualan/retur" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Retur Penjualan" description="Kelola pengembalian barang dari pelanggan." /></ProtectedRoute>} />
-            <Route path="/penjualan/tertolak" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="Penjualan Tertolak" description="Lihat daftar penjualan yang ditolak atau gagal." /></ProtectedRoute>} />
-            <Route path="/penjualan/qris" element={<ProtectedRoute roles={['cashier']}><PlaceholderPage title="QRIS" description="Kelola pembayaran melalui QRIS." /></ProtectedRoute>} />
+
+            {/* Cashier - Penjualan (dropdown) */}
+            <Route path="/penjualan/pesanan" element={<ProtectedRoute roles={['cashier']}><PesananPenjualan /></ProtectedRoute>} />
+            <Route path="/penjualan/daftar" element={<ProtectedRoute roles={['cashier']}><DaftarPenjualan /></ProtectedRoute>} />
+            <Route path="/penjualan/retur" element={<ProtectedRoute roles={['cashier']}><ReturPenjualan /></ProtectedRoute>} />
+            <Route path="/penjualan/tertolak" element={<ProtectedRoute roles={['cashier']}><PenjualanTertolak /></ProtectedRoute>} />
+            <Route path="/penjualan/qris" element={<ProtectedRoute roles={['cashier']}><QRIS /></ProtectedRoute>} />
 
             {/* Manager only */}
             <Route path="/products" element={<ProtectedRoute roles={['manager']}><Products /></ProtectedRoute>} />
@@ -100,13 +115,16 @@ const App = () => (
             <Route path="/outlet/outlet-mitra" element={<ProtectedRoute roles={['manager']}><OutletMitra /></ProtectedRoute>} />
 
             {/* Manajemen Pengguna */}
-            <Route path="/users" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Daftar Pengguna" description="Kelola semua akun pengguna dalam sistem." /></ProtectedRoute>} />
-            <Route path="/users/roles" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Peran & Hak Akses" description="Atur peran dan izin akses untuk setiap pengguna." /></ProtectedRoute>} />
-            <Route path="/users/log" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Log Aktivitas" description="Pantau semua aktivitas pengguna dalam sistem." /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute roles={['manager']}><DaftarPengguna /></ProtectedRoute>} />
+            <Route path="/users/roles" element={<ProtectedRoute roles={['manager']}><PeranHakAkses /></ProtectedRoute>} />
+            <Route path="/users/log" element={<ProtectedRoute roles={['manager']}><LogAktivitas /></ProtectedRoute>} />
 
-            <Route path="/settings/config" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Konfigurasi" description="Konfigurasi sistem, notifikasi, dan preferensi." /></ProtectedRoute>} />
-            <Route path="/help/request" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Minta Bantuan" description="Hubungi tim support untuk bantuan teknis." /></ProtectedRoute>} />
-            <Route path="/help/updates" element={<ProtectedRoute roles={['manager']}><PlaceholderPage title="Riwayat Update" description="Lihat perubahan dan pembaruan sistem terbaru." /></ProtectedRoute>} />
+            {/* Pengaturan */}
+            <Route path="/settings/config" element={<ProtectedRoute roles={['manager']}><Konfigurasi /></ProtectedRoute>} />
+
+            {/* Pusat Bantuan */}
+            <Route path="/help/request" element={<ProtectedRoute roles={['manager']}><MintaBantuan /></ProtectedRoute>} />
+            <Route path="/help/updates" element={<ProtectedRoute roles={['manager']}><RiwayatUpdate /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
