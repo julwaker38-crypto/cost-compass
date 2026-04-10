@@ -28,7 +28,11 @@ import {
   HelpCircle,
   MessageCircle,
   History,
-  LogOut
+  LogOut,
+  ClipboardList,
+  RotateCcw,
+  XCircle,
+  QrCode
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth, UserRole } from '@/hooks/useAuth';
@@ -46,16 +50,17 @@ interface NavGroup {
   label: string;
   roles: UserRole[];
   items?: NavItem[];
-  path?: string; // for single items without sub-menu
+  path?: string;
 }
 
 const navGroups: NavGroup[] = [
+  // === CASHIER menus ===
   { 
-    id: 'dashboard',
-    icon: LayoutDashboard, 
-    label: 'Dashboard', 
-    path: '/dashboard', 
-    roles: ['manager', 'cashier'] 
+    id: 'kasir',
+    icon: Receipt, 
+    label: 'Kasir', 
+    path: '/transactions', 
+    roles: ['cashier'] 
   },
   {
     id: 'penjualan',
@@ -63,14 +68,22 @@ const navGroups: NavGroup[] = [
     label: 'Penjualan',
     roles: ['cashier'],
     items: [
-      { icon: Receipt, label: 'Kasir', path: '/transactions' },
-      { icon: ShoppingCart, label: 'Pesanan Penjualan', path: '/penjualan/pesanan' },
+      { icon: ClipboardList, label: 'Pesanan Penjualan', path: '/penjualan/pesanan' },
       { icon: BarChart3, label: 'Daftar Penjualan', path: '/penjualan/daftar' },
-      { icon: TrendingDown, label: 'Retur Penjualan', path: '/penjualan/retur' },
-      { icon: Activity, label: 'Penjualan Tertolak', path: '/penjualan/tertolak' },
-      { icon: DollarSign, label: 'QRIS', path: '/penjualan/qris' },
+      { icon: RotateCcw, label: 'Retur Penjualan', path: '/penjualan/retur' },
+      { icon: XCircle, label: 'Penjualan Tertolak', path: '/penjualan/tertolak' },
+      { icon: QrCode, label: 'QRIS', path: '/penjualan/qris' },
     ]
   },
+  { 
+    id: 'expenses-cashier',
+    icon: TrendingDown, 
+    label: 'Pengeluaran', 
+    path: '/expenses', 
+    roles: ['cashier'] 
+  },
+
+  // === MANAGER menus ===
   {
     id: 'master-data',
     icon: Database,
@@ -101,7 +114,7 @@ const navGroups: NavGroup[] = [
     icon: TrendingDown, 
     label: 'Pengeluaran', 
     path: '/expenses', 
-    roles: ['manager', 'cashier'] 
+    roles: ['manager'] 
   },
   { 
     id: 'employees',
@@ -127,6 +140,7 @@ const navGroups: NavGroup[] = [
     label: 'Laporan',
     roles: ['manager'],
     items: [
+      { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: Receipt, label: 'Laporan Penjualan', path: '/laporan/penjualan' },
       { icon: ShoppingCart, label: 'Laporan Pembelian', path: '/laporan/pembelian' },
       { icon: Package, label: 'Laporan Persediaan', path: '/laporan/persediaan' },
@@ -246,13 +260,12 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
           </p>
         )}
         {filteredGroups.map((group) => {
-          // Single item (no sub-menu)
           if (group.path) {
             return (
               <NavLink
                 key={group.id}
                 to={group.path}
-                end={group.path === '/dashboard'}
+                end={group.path === '/transactions'}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-all duration-200 group"
                 activeClassName="bg-primary/10 text-foreground border border-primary/15"
               >
@@ -274,7 +287,6 @@ export const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
             );
           }
 
-          // Collapsible group
           const isOpen = openGroups[group.id] || false;
           return (
             <div key={group.id}>
