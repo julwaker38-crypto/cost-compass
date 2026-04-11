@@ -75,12 +75,15 @@ const navGroups: NavGroup[] = [
       { icon: QrCode, label: 'QRIS', path: '/penjualan/qris' },
     ]
   },
-  { 
+  {
     id: 'expenses-cashier',
-    icon: TrendingDown, 
-    label: 'Pengeluaran', 
-    path: '/expenses', 
-    roles: ['cashier'] 
+    icon: TrendingDown,
+    label: 'Pengeluaran',
+    roles: ['cashier'],
+    items: [
+      { icon: Receipt, label: 'Input Pengeluaran', path: '/pengeluaran/input' },
+      { icon: ClipboardList, label: 'Daftar Pengeluaran', path: '/pengeluaran/daftar' },
+    ]
   },
 
   // === MANAGER menus ===
