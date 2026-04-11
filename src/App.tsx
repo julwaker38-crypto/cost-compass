@@ -68,8 +68,8 @@ const App = () => (
 
             {/* Pengeluaran */}
             <Route path="/expenses" element={<ProtectedRoute roles={['manager', 'cashier']}><Expenses /></ProtectedRoute>} />
-            <Route path="/pengeluaran/input" element={<ProtectedRoute roles={['cashier']}><InputPengeluaran /></ProtectedRoute>} />
-            <Route path="/pengeluaran/daftar" element={<ProtectedRoute roles={['cashier']}><DaftarPengeluaranPage /></ProtectedRoute>} />
+            <Route path="/pengeluaran/input" element={<ProtectedRoute roles={['manager', 'cashier']}><InputPengeluaran /></ProtectedRoute>} />
+            <Route path="/pengeluaran/daftar" element={<ProtectedRoute roles={['manager', 'cashier']}><DaftarPengeluaranPage /></ProtectedRoute>} />
 
             {/* Cashier - Kasir (primary) */}
             <Route path="/transactions" element={<ProtectedRoute roles={['cashier']}><Transactions /></ProtectedRoute>} />
