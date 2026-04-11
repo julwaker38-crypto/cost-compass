@@ -112,12 +112,15 @@ const navGroups: NavGroup[] = [
       { icon: Wrench, label: 'Penyesuaian Stok', path: '/persediaan/penyesuaian' },
     ]
   },
-  { 
+  {
     id: 'expenses',
-    icon: TrendingDown, 
-    label: 'Pengeluaran', 
-    path: '/expenses', 
-    roles: ['manager'] 
+    icon: TrendingDown,
+    label: 'Pengeluaran',
+    roles: ['manager'],
+    items: [
+      { icon: Receipt, label: 'Input Pengeluaran', path: '/pengeluaran/input' },
+      { icon: ClipboardList, label: 'Daftar Pengeluaran', path: '/pengeluaran/daftar' },
+    ]
   },
   { 
     id: 'employees',
